@@ -7,12 +7,12 @@
 const hre = require("hardhat");
 
 async function main() {
-  const simpleNFT = await hre.ethers.deployContract("SimpleNFT");
+  const currencyConverter = await hre.ethers.deployContract("CurrencyConverter", []);
 
-  await simpleNFT.waitForDeployment();
+  await currencyConverter.waitForDeployment();
 
   console.log(
-    `SimpleNFT deployed to ${simpleNFT.target}`
+    `CurrencyConverter deployed to ${currencyConverter.target}`
   );
 }
 
