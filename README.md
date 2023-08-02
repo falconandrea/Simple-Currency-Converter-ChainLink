@@ -1,20 +1,18 @@
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/ljpttoh8nm033ssn8qbl" alt="trackgit-views" />
-</a>
+# Simple Currency Converter with ChainLink
 
-# Hardhat + Next Boilerplate
+This is a simple web application that uses Chainlink oracle to fetch exchange rates between different currencies. It allows you to convert a value from one currency to another.
 
-I created this simple Boilerplate with Hardhat + NextJS for doing my exercises and tutorials.
+## How It Works
 
-Features:
+1. The web application uses Chainlink oracles to fetch exchange rates between different currencies.
 
-- Example Mint NFT contract + test
-- Empty frontend with default functions (wallet connect, get providers or signers, check network)
-- Hardhat and NextJS ready to code
+2. Select the source currency and enter the value you want to convert in the input field.
 
-TODO:
+3. Select the target currency from the dropdown.
 
-- Create simple graphic template
+4. The equivalent value in the target currency will be automatically displayed below the input fields.
+
+5. The conversion is done on-chain using the smart contract deployed on the Ethereum network.
 
 ```shell
 # Install packages
@@ -27,8 +25,8 @@ npx hardhat compile
 npx hardhat test
 
 # Run script deploy
-npx hardhat run scripts/deploy.js --network goerli
+npx hardhat run scripts/deploy.js --network sepolia
 
 # Use frontend in local
-npm run dev
+cd frontend && npm install && npm run dev
 ```
