@@ -4,13 +4,19 @@ import { Contract, providers, utils } from "ethers";
 import Head from "next/head";
 import React, { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
-import styles from './page.module.css'
 
-const NFT_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
-import contract from "artifactsContracts/SimpleNFT.sol/SimpleNFT"
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
+import contract from "./../../artifacts/contracts/CurrencyConverter.sol/CurrencyConverter.json"
 const abi = contract.abi
 const NETWORK_NAME = process.env.NEXT_PUBLIC_NETWORK_NAME
 const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID
+
+const addresses = {
+  "ETH/USD": "0x694AA1769357215DE4FAC081bf1f309aDC325306",
+  "BTC/USD": "0x1b44F3514812d835EB1BDB0acB33d3fA3351Ee43",
+  "BTC/ETH": "0x5fb1616F78dA7aFC9FF79e0371741a747D2a7F22",
+  "EUR/USD": "0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910"
+}
 
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
@@ -22,6 +28,13 @@ export default function Home() {
   // for messages
   const [errorMessage, setErrorMessage] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
+
+  // Start price to convert
+  const [amount, setAmount] = useState(0)
+  // Converted price
+  const [convertedAmount, setConvertedAmount] = useState(0)
+  // Timestamp last price update
+  const [timestamp, setTimestamp] = useState(null)
 
   /*
     connectWallet: Connects the MetaMask wallet
@@ -80,33 +93,39 @@ export default function Home() {
     }
   }, [walletConnected]);
 
-  /**
-   * publicMint: Mint an NFT after the presale
-   */
-  const publicMint = async () => {
-    try {
-      // Reset messages
-      setErrorMessage('')
-      setSuccessMessage('')
-      // We need a Signer here since this is a 'write' transaction.
+  function convertTimestampToDateTime(timestamp) {
+    const date = new Date(timestamp);
+    const options = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric',
+      timeZoneName: 'short',
+      timeZone: 'UTC'
+    };
+    return date.toLocaleString('en-US', options);
+  }
+
+  const convert = async () => {
+    setLoading(true)
+    const signer = await getProviderOrSigner(true)
+    const contract = new Contract(CONTRACT_ADDRESS, abi, signer)
+    const result = await contract.convertCurrency(amount)
+    setConvertedAmount(Number(result[0]))
+    const timestamp = Number(result[1])
+    // Convert timestamp to date with format dd-mm-yyyy GMT time
+    const date = new Date(timestamp * 1000)
+    setTimestamp(convertTimestampToDateTime(date))
+    setLoading(false)
+  }
+
+  const changeFeed = async (currencySelected) => {
+    if(addresses[currencySelected]) {
       const signer = await getProviderOrSigner(true)
-      // Create a new instance of the Contract with a Signer, which allows
-      // update methods
-      const nftContract = new Contract(NFT_CONTRACT_ADDRESS, abi, signer)
-      // call the mint from the contract to mint the NFT
-      const tx = await nftContract.mint({
-        // value signifies the cost of one NFT which is "0.01" eth.
-        // We are parsing `0.01` string to ether using the utils library from ethers.js
-        value: utils.parseEther('0.01')
-      })
-      setLoading(true)
-      // wait for the transaction to get mined
-      await tx.wait()
-      setLoading(false)
-      setSuccessMessage('You successfully minted your NFT!')
-    } catch (err) {
-      console.error(err)
-      setErrorMessage('Error during public mint')
+      const contract = new Contract(addresses[currencySelected], abi, signer)
+      const result = await contract.convertCurrency(amount)
     }
   }
 
@@ -114,30 +133,28 @@ export default function Home() {
     // If wallet is not connected, return a button which allows them to connect their wallet
     if (!walletConnected) {
       return (
-        <button onClick={connectWallet} className={styles.button}>
+        <button className="w-full bg-indigo-600 text-white py-2 rounded-md" onClick={connectWallet}>
           Connect your wallet
         </button>
       );
+    } else {
+      return (
+        <button className="w-full bg-indigo-600 text-white py-2 rounded-md" onClick={convert}>Convert</button>
+      );
     }
-
-    return (
-      <button className={styles.button} onClick={publicMint}>
-        Public Mint 🚀
-      </button>
-    );
   };
 
   const renderMessages = () => {
-    if(successMessage) {
+    if (successMessage) {
       return (
-        <p className={styles.successMessage}>
+        <p className="text-green-500 mt-5 mb-5">
           {successMessage}
         </p>
       )
     }
-    if(errorMessage) {
+    if (errorMessage) {
       return (
-        <p className={styles.errorMessage}>
+        <p className="text-red-500 mt-5 mb-5">
           {errorMessage}
         </p>
       )
@@ -145,23 +162,49 @@ export default function Home() {
   }
 
   return (
-    <div>
+    <div className="bg-gray-100 min-h-screen">
       <Head>
-        <title>Example</title>
-        <meta name="description" content="Example app" />
+        <title>Currency Converter</title>
+        <meta name="description" content="Currency Converter" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div>
-        { loading ? (
-          <div className={styles.loading}>
+        {loading ? (
+          <div className="loading">
             <p>Loading...</p>
           </div>
         ) : ''}
-        {renderButton()}
-        {renderMessages()}
+        <div className="container mx-auto p-4 pt-8">
+          <h1 className="text-3xl font-semibold text-center mb-2">Currency Converter</h1>
+          <h4 className="text-md text-center mb-8">Using Chainlink Price Feed</h4>
+          <div className="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+            <div className="mb-4">
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount</label>
+              <input type="number" id="amount" name="amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" />
+            </div>
+            <div className="mb-4">
+              <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
+              <select id="currency" name="currency" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" onChange={(e) => changeFeed(e.target.value)}>
+                <option value="ETH/USD">ETH/USD</option>
+                <option value="BTC/ETH">BTC/ETH</option>
+                <option value="BTC/USD">BTC/USD</option>
+                <option value="EUR/USD">EUR/USD</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label htmlFor="convertedAmount" className="block text-sm font-medium text-gray-700">Converted Amount</label>
+              <input type="text" id="convertedAmount" name="convertedAmount" value={convertedAmount} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" readOnly />
+            </div>
+            { timestamp ? (
+              <p className="mb-4"><small>Price updated at {timestamp}</small></p>
+            ) : ''}
+            {renderMessages()}
+            {renderButton()}
+          </div>
+        </div>
       </div>
 
-      <footer className={styles.footer}>Created by Falcon Andrea</footer>
+      <footer className="text-center">Created by Falcon Andrea</footer>
     </div>
   )
 }
