@@ -203,7 +203,7 @@ export default function Home() {
         </div>
       </div>
 
-      <footer className="text-center">Created by Falcon Andrea</footer>
+      <footer className="text-center">Created by <a href="https://linktr.ee/falconandrea" className="underline" title="Falcon Andrea links" target="_blank" rel="noreferrer">Falcon Andrea</a></footer>
     </div>
   )
 }
