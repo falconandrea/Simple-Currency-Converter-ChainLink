@@ -15,8 +15,8 @@ describe('MockCurrencyConverter', function () {
     return { contract, owner, otherAccount }
   }
 
-  describe('Tests', function () {
-    it('Should deploy', async function () {
+  describe('Deploy contract', function () {
+    it('Should deploy correctly', async function () {
       const { contract } = await loadFixture(deployFixture)
 
       expect(contract.target).to.be.a('string')
@@ -39,7 +39,7 @@ describe('MockCurrencyConverter', function () {
       expect(Number(result[0])).to.be.equal(1)
     })
 
-    it('Owner should be able to disable a datafeed', async function () {
+    it('Owner should be able to disable and re-enable a datafeed', async function () {
       const { contract, owner, otherAccount } = await loadFixture(deployFixture)
 
       await expect(contract.connect(otherAccount)
@@ -53,6 +53,32 @@ describe('MockCurrencyConverter', function () {
       await expect(contract.connect(otherAccount)
         .convertCurrency("ETH/USD", 1))
         .to.be.revertedWith('Datafeed not exists')
+
+      let statusFeed = await contract.connect(otherAccount)
+        .getStatus("ETH/USD")
+      expect(statusFeed).to.be.false
+
+      await expect(contract.connect(owner)
+        .addDataFeed("ETH/USD", "0x694AA1769357215DE4FAC081bf1f309aDC325306"))
+        .to.be.not.reverted
+
+      await expect(contract.connect(otherAccount)
+        .convertCurrency("ETH/USD", 1))
+        .to.be.not.reverted
+
+      statusFeed = await contract.connect(otherAccount)
+        .getStatus("ETH/USD")
+      expect(statusFeed).to.be.true
+    })
+  })
+
+  describe('User actions', function () {
+    it('User should be able to use datafeed', async function () {
+      const { contract, otherAccount } = await loadFixture(deployFixture)
+
+      const convertedValue = await contract.connect(otherAccount)
+        .convertCurrency("ETH/USD", 1)
+      expect(Number(convertedValue[0])).to.be.equal(1)
     })
   })
 })
