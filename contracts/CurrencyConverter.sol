@@ -63,19 +63,18 @@ contract CurrencyConverter {
     }
 
     /**
-     * Enable datafeed
-     */
-    function enableDataFeed(string memory _currency) public onlyOwner {
-        require(dataFeedsExists[_currency], "Datafeed not exists");
-        dataFeedsExists[_currency] = true;
-    }
-
-    /**
      * Disable datafeed
      */
     function disableDataFeed(string memory _currency) public onlyOwner {
         require(dataFeedsExists[_currency], "Datafeed not exists");
         dataFeedsExists[_currency] = false;
+    }
+
+    /**
+     * Get status datafeed
+     */
+    function getStatus(string memory _currency) public view returns (bool) {
+        return dataFeedsExists[_currency];
     }
 
     /**
