@@ -35,6 +35,8 @@ export default function Home() {
   const [convertedAmount, setConvertedAmount] = useState(0)
   // Timestamp last price update
   const [timestamp, setTimestamp] = useState(null)
+  // Currenct currency selected
+  const [currency, setCurrency] = useState("ETH/USD")
 
   /*
     connectWallet: Connects the MetaMask wallet
@@ -112,9 +114,9 @@ export default function Home() {
     setLoading(true)
     const signer = await getProviderOrSigner(true)
     const contract = new Contract(CONTRACT_ADDRESS, abi, signer)
-    const result = await contract.convertCurrency(amount)
-    setConvertedAmount(Number(result[0]))
-    const timestamp = Number(result[1])
+    const result = await contract.convertCurrency(currency, amount)
+    setConvertedAmount(Number(result[0]) / (10 ** Number(result[1])))
+    const timestamp = Number(result[2])
     // Convert timestamp to date with format dd-mm-yyyy GMT time
     const date = new Date(timestamp * 1000)
     setTimestamp(convertTimestampToDateTime(date))
@@ -123,9 +125,7 @@ export default function Home() {
 
   const changeFeed = async (currencySelected) => {
     if(addresses[currencySelected]) {
-      const signer = await getProviderOrSigner(true)
-      const contract = new Contract(addresses[currencySelected], abi, signer)
-      const result = await contract.convertCurrency(amount)
+      setCurrency(currencySelected)
     }
   }
 
@@ -184,11 +184,10 @@ export default function Home() {
             </div>
             <div className="mb-4">
               <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
-              <select id="currency" name="currency" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" onChange={(e) => changeFeed(e.target.value)}>
-                <option value="ETH/USD">ETH/USD</option>
-                <option value="BTC/ETH">BTC/ETH</option>
-                <option value="BTC/USD">BTC/USD</option>
-                <option value="EUR/USD">EUR/USD</option>
+              <select id="currency" name="currency" value={currency} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" onChange={(e) => changeFeed(e.target.value)}>
+                {Object.keys(addresses).map((address, index) => (
+                  <option key={index} value={address}>{address}</option>
+                ))}
               </select>
             </div>
             <div className="mb-4">
