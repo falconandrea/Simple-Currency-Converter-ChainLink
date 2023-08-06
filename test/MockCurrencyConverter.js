@@ -35,8 +35,9 @@ describe('MockCurrencyConverter', function () {
         .addDataFeed("BTC/DAI", owner.address))
         .to.be.not.reverted
 
-      const result = await contract.connect(otherAccount).convertCurrency("BTC/DAI", 1)
-      expect(Number(result[0])).to.be.equal(1)
+      const result = await contract.connect(otherAccount)
+        .convertCurrency("BTC/DAI", 1)
+      expect(Number(result[0])).to.be.equal(1000000000000000000)
     })
 
     it('Owner should be able to disable and re-enable a datafeed', async function () {
@@ -78,7 +79,7 @@ describe('MockCurrencyConverter', function () {
 
       const convertedValue = await contract.connect(otherAccount)
         .convertCurrency("ETH/USD", 1)
-      expect(Number(convertedValue[0])).to.be.equal(1)
+      expect(Number(convertedValue[0])).to.be.equal(1000000000000000000)
     })
   })
 })

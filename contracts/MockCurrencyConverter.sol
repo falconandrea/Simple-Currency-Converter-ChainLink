@@ -90,10 +90,10 @@ contract MockCurrencyConverter {
     }
 
     /**
-     * Convert start price and return converted price
-     * and last price update timestamp
+     * Convert start price and return converted price,
+     * decimals and last price update timestamp
      */
-    function convertCurrency(string memory _currency, uint256 _value) public view returns (uint256, uint256) {
+    function convertCurrency(string memory _currency, uint256 _value) public view returns (uint256, uint256, uint256) {
         // Check datafeed exists
         require(dataFeedsExists[_currency], "Datafeed not exists");
 
@@ -111,10 +111,7 @@ contract MockCurrencyConverter {
         // Fake return data
         uint8 decimals = 18;
 
-        // Convert price
-        uint256 convertedPrice = (_value * price) / (10 ** uint256(decimals));
-
-        // Return converted price and timeStamp
-        return (convertedPrice, timeStamp);
+        // Return converted price, decimals and timeStamp
+        return ((_value * price), uint256(decimals), timeStamp);
     }
 }
