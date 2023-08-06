@@ -6,7 +6,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Web3Modal from "web3modal";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS
-import contract from "./../../artifacts/contracts/CurrencyConverter.sol/CurrencyConverter.json"
+import contract from "./../abi/CurrencyConverter.json"
 const abi = contract.abi
 const NETWORK_NAME = process.env.NEXT_PUBLIC_NETWORK_NAME
 const NETWORK_ID = process.env.NEXT_PUBLIC_NETWORK_ID
