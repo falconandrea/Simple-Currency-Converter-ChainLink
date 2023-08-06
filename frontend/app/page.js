@@ -183,7 +183,7 @@ export default function Home() {
               <input type="number" id="amount" name="amount" value={amount} onChange={(e) => setAmount(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" />
             </div>
             <div className="mb-4">
-              <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency</label>
+              <label htmlFor="currency" className="block text-sm font-medium text-gray-700">Currency Exchange</label>
               <select id="currency" name="currency" value={currency} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring focus:ring-indigo-200" onChange={(e) => changeFeed(e.target.value)}>
                 {Object.keys(addresses).map((address, index) => (
                   <option key={index} value={address}>{address}</option>
